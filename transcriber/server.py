@@ -13,12 +13,13 @@ import concurrent.futures
 import json
 
 logger = logging.getLogger(__name__)
+device = "cpu"
+model = whisperx.load_model("small", device, compute_type="int8")
 
-def transcribe(audio_file: str, model: str = "small", device: str = "cpu", compute_type: str = "int8"):
+def transcribe(audio_file: str):
     batch_size = 16  # reduce if low on GPU mem
-
     # 1. Transcribe with original whisper (batched)
-    model = whisperx.load_model(model, device, compute_type=compute_type)
+    
     audio = whisperx.load_audio(audio_file)
     result = model.transcribe(audio, batch_size=batch_size)
 
