@@ -14,7 +14,8 @@ import json
 
 logger = logging.getLogger(__name__)
 device = "cpu"
-model = whisperx.load_model("small", device, compute_type="int8")
+
+model = None
 
 def transcribe(audio_file: str):
     batch_size = 16  # reduce if low on GPU mem
@@ -76,6 +77,10 @@ def main():
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG)
+    logger.info("Loading model...")
+    global model
+    model = whisperx.load_model("small", device, compute_type="int8")
+
     if args.audio_file:
         result = transcribe2(args.audio_file)
         print(json.dumps(result, indent=4))
