@@ -20,6 +20,7 @@ class TestTranscriber(unittest.IsolatedAsyncioTestCase):
     def tearDownClass(cls):
         # Terminate the server process
         cls.server_process.terminate()
+        cls.server_process.wait()
 
     async def test_transcription(self):
         async with ClientSession() as session:
