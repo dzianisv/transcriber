@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 
 import unittest
-import asyncio
 import subprocess
 import time
-import os
 from aiohttp import ClientSession
 from contextlib import asynccontextmanager
 
 # Sample audio URL (ensure you have the rights to use it)
-sample_audio_url = "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav"
+sample_audio_url = "https://github.com/ggerganov/whisper.cpp/raw/master/samples/jfk.wav"
 
 class TestTranscriber(unittest.IsolatedAsyncioTestCase):
     @classmethod
