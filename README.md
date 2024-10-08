@@ -12,7 +12,5 @@ pip install git+https://github.com/dzianisv/transcriber.git
 ## Run a transcriber server
 
 ```sh
-#!/bin/sh
-
 python3 -m transcriber.server --host 100.100.107.153 --port 8083
 ```
