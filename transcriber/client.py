@@ -8,7 +8,13 @@ import aiohttp
 from contextlib import asynccontextmanager
 from typing import Optional, Tuple, AsyncGenerator
 
-whisperx_endpoint = os.environ.get("WHISPERX_ENDPOINT", "http://localhost:8080")
+
+whisperx_endpoint = os.environ.get("WHISPERX_ENDPOINT", None)
+if not whisperx_endpoint:
+    whisperx_host = os.environ.get("WHISPERX_HOST", "localhost")
+    whisperx_port = os.environ.get("WHISPERX_PORT", "8080")
+    whisperx_endpoint = f"http://{whisperx_host}:{whisperx_port}"
+
 logger = logging.getLogger(__name__)
 
 # Function to extract audio from video using ffmpeg
@@ -37,6 +43,7 @@ async def transcribe_audio(audio_path: str):
         async with aiohttp.ClientSession() as session:
             with open(audio_path, 'rb') as audio_file:
                 files = {'audio_file': audio_file.read()}
+                logger.info("Using %s", whisperx_endpoint)
                 async with session.post(f"{whisperx_endpoint}/transcribe", data=files) as response:
                     response.raise_for_status()
                     logger.info("API: %s", response.status)

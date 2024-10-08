@@ -11,6 +11,7 @@ import tempfile
 import logging
 import concurrent.futures
 import json
+import os
 
 logger = logging.getLogger(__name__)
 device = "cpu"
@@ -71,8 +72,8 @@ async def transcription_api():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--host", type=str, default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8080)
+    parser.add_argument("--host", type=str, default=os.environ.get("WHISPERX_HOST", "localhost"))
+    parser.add_argument("--port", type=int, default=os.environ.get("WHISPERX_PORT", "8080"))
     parser.add_argument("--audio-file", type=str, help="Do not run server, use the audio file to transcode and output the result to the stdout")
     args = parser.parse_args()
 
