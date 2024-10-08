@@ -7,6 +7,7 @@ A Python package for transcribing audio and video files using WhisperX and Speec
 ```sh
 pip install git+https://github.com/dzianisv/transcriber.git
 
+```
 
 ## Run a transcriber server
 
