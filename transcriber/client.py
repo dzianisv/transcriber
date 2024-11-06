@@ -42,20 +42,33 @@ async def transcribe_audio(audio_path: str):
     try:
         async with aiohttp.ClientSession() as session:
             with open(audio_path, 'rb') as audio_file:
-                files = {'audio_file': audio_file.read()}
-                logger.info("Using %s", whisperx_endpoint)
-                async with session.post(f"{whisperx_endpoint}/transcribe", data=files) as response:
+                data = aiohttp.FormData()
+                data.add_field('audio_file', audio_file)
+                
+                logger.info("Using WhisperX endpoint: %s", whisperx_endpoint)
+                async with session.post(f"{whisperx_endpoint}/transcribe", data=data) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        return result['text']
                     response.raise_for_status()
-                    logger.info("API: %s", response.status)
-                    response_json = await response.json()
-                    return response_json['text']
-    except Exception as e:
-        logger.error("WhisperX failed to transcribe the audio, trying the SpeechRecognition lib as a fallback...")
+                    
+    except (aiohttp.ClientError, KeyError) as e:
+        logger.warning("WhisperX service unavailable, falling back to Google Speech API: %s", str(e))
         import speech_recognition as sr
+        
         recognizer = sr.Recognizer()
         with sr.AudioFile(audio_path) as source:
             audio = recognizer.record(source)
-        return recognizer.recognize_google(audio)
+            
+        try:
+            return recognizer.recognize_google(audio)
+        except sr.RequestError as e:
+            logger.error("Google Speech API error: %s", str(e))
+            raise
+        except sr.UnknownValueError:
+            logger.error("Google Speech API could not understand the audio")
+            raise
+
 
 async def transcribe_video(video_file: str):
     async with extract_audio(video_file) as audio_file:
