@@ -9,12 +9,6 @@ from contextlib import asynccontextmanager
 from typing import Optional, Tuple, AsyncGenerator
 
 
-whisperx_endpoint = os.environ.get("WHISPERX_ENDPOINT", None)
-if not whisperx_endpoint:
-    whisperx_host = os.environ.get("WHISPERX_HOST", "localhost")
-    whisperx_port = os.environ.get("WHISPERX_PORT", "8080")
-    whisperx_endpoint = f"http://{whisperx_host}:{whisperx_port}"
-
 logger = logging.getLogger(__name__)
 
 # Function to extract audio from video using ffmpeg
@@ -38,15 +32,18 @@ async def extract_audio(video_file):
         if os.path.exists(audio_file):
             os.remove(audio_file)
 
-async def transcribe_audio(audio_path: str):
+async def transcribe_audio(audio_path: str, endpoint: Optional[str]) -> Optional[str]:
     try:
+        if endpoint is None:
+            raise Exception("WhisperX endpoint not set")
+
         async with aiohttp.ClientSession() as session:
             with open(audio_path, 'rb') as audio_file:
                 data = aiohttp.FormData()
                 data.add_field('audio_file', audio_file)
                 
-                logger.info("Using WhisperX endpoint: %s", whisperx_endpoint)
-                async with session.post(f"{whisperx_endpoint}/transcribe", data=data) as response:
+                logger.info("Using WhisperX endpoint: %s", endpoint)
+                async with session.post(f"{endpoint}/transcribe", data=data) as response:
                     if response.status == 200:
                         result = await response.json()
                         return result['text']
@@ -69,8 +66,7 @@ async def transcribe_audio(audio_path: str):
             logger.error("Google Speech API could not understand the audio")
             raise
 
-
-async def transcribe_video(video_file: str):
+async def transcribe_video(video_file: str, endpoint: Optional[str]) -> Optional[str]:
     async with extract_audio(video_file) as audio_file:
         try:
             logger.info("Transcribing %s", audio_file)
@@ -82,5 +78,11 @@ async def transcribe_video(video_file: str):
             return ""
 
 if __name__ == "__main__":
+    endpoint = os.environ.get("endpoint", None)
+    if not endpoint:
+        whisperx_host = os.environ.get("WHISPERX_HOST", "localhost")
+        whisperx_port = os.environ.get("WHISPERX_PORT", "8080")
+        endpoint = f"http://{whisperx_host}:{whisperx_port}"
+
     logging.basicConfig(level=logging.INFO)
-    asyncio.run(transcribe_video(sys.argv[1]))
+    asyncio.run(transcribe_video(sys.argv[1], endpoint))
